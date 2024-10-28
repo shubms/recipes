@@ -1,0 +1,47 @@
+schema_version: 1
+
+context:
+  name: dua-cli
+  version: 2.29.2
+  build: 0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/Byron/${{ name }}/archive/v${{ version }}.tar.gz
+  sha256: 76ebd07c4a4379ef0d45232fa7a9b0bcbff1bd54fad6930ec1a2823806473f5d
+
+build:
+  number: ${{ build|int + (microarch_level|int) * 100 }}
+  script:
+    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
+    - $BUILD_PREFIX/bin/cargo install --locked --root ${PREFIX} --path .
+
+requirements:
+  build:
+    - if: microarch_level|int > 0
+      then: x86_64-microarch-level ${{ microarch_level }}
+    - ${{ compiler('c') }}
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - dua --version
+
+about:
+  homepage: https://github.com/Byron/dua-cli
+  documentation: https://lib.rs/crates/dua-cli
+  license: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Disk Usage Analyzer
+  description: |
+    dua is a tool to conveniently learn about the usage of disk
+    space of a given directory. It's parallel by default and will
+    max out your SSD, providing relevant information as fast as possible.
+    Optionally delete superfluous data, and do so more quickly than rm.
+  repository: https://github.com/Byron/dua-cli.git

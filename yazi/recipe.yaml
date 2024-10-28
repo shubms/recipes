@@ -1,0 +1,46 @@
+schema_version: 1
+
+context:
+  name: yazi
+  version: 0.3.3
+  build: 0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/sxyazi/${{ name }}/archive/v${{ version }}.tar.gz
+  sha256: fe2a458808334fe20eff1ab0145c78d684d8736c9715e4c51bce54038607dc4e
+
+build:
+  number: ${{ build|int + (microarch_level|int) * 100 }}
+  script:
+    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
+    - $BUILD_PREFIX/bin/cargo install --locked --root ${PREFIX} --path ./yazi-cli
+    - $BUILD_PREFIX/bin/cargo install --locked --root ${PREFIX} --path ./yazi-fm
+
+requirements:
+  build:
+    - if: microarch_level|int > 0
+      then: x86_64-microarch-level ${{ microarch_level }}
+    - ${{ compiler('c') }}
+    #- ${{ stdlib('c') }}
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+
+tests:
+  - script:
+      - yazi --version
+
+about:
+  homepage: https://yazi-rs.github.io
+  documentation: https://yazi-rs.github.io/docs
+  license: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Blazing Fast Terminal File Manager
+  description: |
+    Blazing fast terminal file manager written in Rust, based on async I/O.
+  repository: https://github.com/sxyazi/yazi.git

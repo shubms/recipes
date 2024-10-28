@@ -1,0 +1,49 @@
+schema_version: 1
+
+context:
+  name: jujutsu
+  version: 0.22.0
+  build: 0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/martinvonz/jj/archive/v${{ version }}.tar.gz
+  sha256: ed49b1c01ee6086bb782a465a4437e2f1b66f43bcf39c231df2b261091ab114b
+
+build:
+  number: ${{ build|int + (microarch_level|int) * 100 }}
+  script:
+    - cargo-bundle-licenses --format yaml --output ${SRC_DIR}/THIRDPARTY.yml
+    - $BUILD_PREFIX/bin/cargo install --locked --root ${PREFIX} --path ./cli
+
+requirements:
+  build:
+    - if: microarch_level|int > 0
+      then: x86_64-microarch-level ${{ microarch_level }}
+    - ${{ compiler('c') }}
+    - ${{ compiler('rust') }}
+    - cargo-bundle-licenses
+  host:
+    - openssl
+
+tests:
+  - script:
+      - jj --version
+
+about:
+  homepage: https://martinvonz.github.io/jj
+  documentation: https://martinvonz.github.io/jj
+  license: MIT
+  license_file:
+    - LICENSE
+    - THIRDPARTY.yml
+  summary: Git-compatible VCS
+  description: |
+    Jujutsu is a powerful version control system for software projects.
+    Jujutsu is unlike most other systems, because internally it abstracts
+    the user interface and version control algorithms from the storage systems
+    used to serve your content.
+  repository: https://github.com/martinvonz/jj.git

@@ -1,0 +1,52 @@
+schema_version: 1
+
+context:
+  name: restic
+  version: 0.17.2
+  build: 0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/restic/${{ name }}/archive/v${{ version }}.tar.gz
+  sha256: ac52843c40bc9b520bb8dbbbaeda6afec7a35c59753b8cbf11348dd734896ed1
+
+build:
+  number: ${{ build|int + (microarch_level|int) * 100 }}
+  script:
+    - go run build.go
+    - mkdir -p $PREFIX/bin
+    - mv restic $PREFIX/bin/restic
+    - go-licenses save github.com/restic/restic/cmd/restic --save_path=licenses
+
+requirements:
+  build:
+    - if: microarch_level|int > 0
+      then: x86_64-microarch-level ${{ microarch_level }}
+    - ${{ compiler('go-nocgo') }}
+    - go-licenses
+
+tests:
+  - script:
+      - restic version
+
+about:
+  homepage: https://restic.net/
+  documentation: https://restic.readthedocs.io/en/stable/index.html
+  license: BSD-2-Clause
+  license_file:
+    - LICENSE
+    - licenses/
+  summary: Restic is a fast and secure backup program.
+  description: |
+    Restic is a modern backup program that can back up your files from Linux,
+    BSD, Mac and Windows to many different storage types, including self-hosted
+    and online services easily, being a single executable that you can run
+    without a server or complex setup effectively, only transferring the parts
+    that actually changed in the files you back up securely, by careful use of
+    cryptography in every part of the process verifiably, enabling you to make
+    sure that your files can be restored when needed freely - restic is
+    entirely free to use and completely open source.
+  repository: https://github.com/restic/restic.git
